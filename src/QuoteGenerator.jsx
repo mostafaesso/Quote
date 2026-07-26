@@ -45,32 +45,55 @@ export default function QuoteGenerator() {
 
       const dealProperties = dealData.properties;
 
-      // Get associated company
-      let companyData = null;
-      if (dealData.associations?.companies?.results?.length > 0) {
-        const companyId = dealData.associations.companies.results[0].id;
-        const companyResponse = await fetch(`/api/hubspot?type=company&id=${companyId}`);
+      // Debug: open your browser console (F12) to see exactly what HubSpot returned
+      console.log('HubSpot deal response:', dealData);
 
-        if (companyResponse.ok) {
-          const company = await companyResponse.json();
-          companyData = company.properties;
+      // Get associated company id — fall back to a direct associations call
+      // if the inline "associations" field didn't come back (can happen
+      // depending on the private app's scopes)
+      let companyId = dealData.associations?.companies?.results?.[0]?.id;
+      if (!companyId) {
+        const assocRes = await fetch(`/api/hubspot?type=associations&id=${dealId}&toType=companies`);
+        if (assocRes.ok) {
+          const assocData = await assocRes.json();
+          companyId = assocData.results?.[0]?.toObjectId || assocData.results?.[0]?.id;
         }
       }
 
-      // Get line items
+      let companyData = null;
+      if (companyId) {
+        const companyResponse = await fetch(`/api/hubspot?type=company&id=${companyId}`);
+        if (companyResponse.ok) {
+          const company = await companyResponse.json();
+          companyData = company.properties;
+          console.log('HubSpot company response:', company);
+        }
+      }
+
+      // Get line item ids — same fallback approach
+      let lineItemIds = (dealData.associations?.line_items?.results || []).map(r => r.id);
+      if (lineItemIds.length === 0) {
+        const assocRes = await fetch(`/api/hubspot?type=associations&id=${dealId}&toType=line_items`);
+        if (assocRes.ok) {
+          const assocData = await assocRes.json();
+          lineItemIds = (assocData.results || []).map(r => r.toObjectId || r.id);
+        }
+      }
+
       let lineItems = [];
-      if (dealData.associations?.line_items?.results?.length > 0) {
-        const lineItemPromises = dealData.associations.line_items.results.map(item =>
-          fetch(`/api/hubspot?type=lineitem&id=${item.id}`).then(res => res.json())
+      if (lineItemIds.length > 0) {
+        const lineItemPromises = lineItemIds.map(itemId =>
+          fetch(`/api/hubspot?type=lineitem&id=${itemId}`).then(res => res.json())
         );
 
         const lineItemsResults = await Promise.all(lineItemPromises);
+        console.log('HubSpot line item responses:', lineItemsResults);
         lineItems = lineItemsResults.map(item => ({
           id: item.id,
-          name: item.properties.name || 'Unknown Product',
-          quantity: item.properties.quantity || 1,
-          price: parseFloat(item.properties.price || 0),
-          discount: parseFloat(item.properties.discount || 0)
+          name: item.properties?.name || 'Unknown Product',
+          quantity: parseFloat(item.properties?.quantity || 1),
+          price: parseFloat(item.properties?.price || 0),
+          discount: parseFloat(item.properties?.discount || 0)
         }));
       }
 
@@ -108,15 +131,17 @@ export default function QuoteGenerator() {
   const downloadPDF = () => {
     if (!quoteData) return;
 
-    // Create a simple HTML representation and trigger download
+    // Open a dedicated print window with a proper invoice layout, then
+    // trigger the browser's print dialog so the user can "Save as PDF".
+    // This produces a real, well-formatted PDF instead of a raw .html file.
     const htmlContent = generatePDFHTML();
-    const element = document.createElement('a');
-    const file = new Blob([htmlContent], { type: 'text/html' });
-    element.href = URL.createObjectURL(file);
-    element.download = `Quote_${quoteData.dealId}_${Date.now()}.html`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.print();
+    };
   };
 
   const generatePDFHTML = () => {
@@ -124,42 +149,69 @@ export default function QuoteGenerator() {
       <!DOCTYPE html>
       <html>
       <head>
+        <meta charset="UTF-8">
+        <title>Quote ${quoteData.dealId}</title>
         <style>
-          body { font-family: Arial, sans-serif; max-width: 900px; margin: 0; padding: 20px; }
-          .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-          .logo { font-size: 24px; font-weight: bold; }
-          h1 { text-align: center; color: #333; }
-          .info-section { display: flex; justify-content: space-between; margin-bottom: 30px; }
+          @page { size: letter; margin: 0.6in; }
+          * { box-sizing: border-box; }
+          body { font-family: Arial, Helvetica, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; color: #1e293b; }
+          .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 3px solid #1e293b; }
+          .logo-mark { display: flex; align-items: center; gap: 12px; }
+          .logo-box { width: 52px; height: 52px; background: #2563eb; color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; letter-spacing: 1px; }
+          .logo-text { font-size: 22px; font-weight: bold; color: #1e293b; }
+          .logo-sub { font-size: 11px; color: #64748b; }
+          .quote-title { text-align: right; }
+          .quote-title h1 { margin: 0; font-size: 26px; color: #1e293b; }
+          .quote-title p { margin: 4px 0 0; font-size: 12px; color: #64748b; }
+          .info-section { display: flex; justify-content: space-between; margin-bottom: 28px; gap: 20px; }
           .info-block { flex: 1; }
-          .info-block h3 { margin-bottom: 10px; color: #666; font-size: 12px; text-transform: uppercase; }
-          .info-block p { margin: 3px 0; font-size: 14px; }
-          table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-          th { background-color: #f0f0f0; padding: 12px; text-align: left; font-weight: bold; border-bottom: 2px solid #333; }
-          td { padding: 10px 12px; border-bottom: 1px solid #ddd; }
-          .total-section { text-align: right; margin: 30px 0; }
-          .total-row { font-size: 18px; font-weight: bold; color: #333; }
-          .terms { font-size: 12px; color: #666; margin-top: 40px; line-height: 1.6; }
-          .bank-details { background-color: #f9f9f9; padding: 15px; margin-top: 20px; font-size: 12px; }
+          .info-block h3 { margin: 0 0 8px; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+          .info-block p { margin: 3px 0; font-size: 13px; line-height: 1.5; }
+          .dates { display: flex; gap: 40px; margin-bottom: 24px; font-size: 13px; color: #475569; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          th { background-color: #1e293b; color: #fff; padding: 10px 12px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+          th.num, td.num { text-align: right; }
+          td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+          .total-section { display: flex; justify-content: flex-end; margin: 20px 0; }
+          .total-table { width: 280px; font-size: 13px; }
+          .total-table div { display: flex; justify-content: space-between; padding: 6px 0; }
+          .total-table .grand { font-size: 17px; font-weight: bold; border-top: 2px solid #1e293b; padding-top: 10px; margin-top: 4px; }
+          .bank-details { background-color: #f1f5f9; padding: 14px 16px; margin-top: 16px; font-size: 12px; border-radius: 6px; }
+          .bank-details h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; color: #475569; }
+          .signature-section { display: flex; gap: 60px; margin-top: 60px; page-break-inside: avoid; }
+          .signature-block { flex: 1; }
+          .signature-line { border-top: 1px solid #1e293b; margin-top: 40px; padding-top: 6px; font-size: 11px; color: #64748b; }
+          .terms { font-size: 10.5px; color: #64748b; margin-top: 30px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+          @media print {
+            body { padding: 0; }
+          }
         </style>
       </head>
       <body>
         <div class="header">
-          <div class="logo">OPS Solutions</div>
-          <div></div>
+          <div class="logo-mark">
+            <div class="logo-box">OPS</div>
+            <div>
+              <div class="logo-text">Ops Solutions</div>
+              <div class="logo-sub">Revenue Operations & GTM Consulting</div>
+            </div>
+          </div>
+          <div class="quote-title">
+            <h1>QUOTE</h1>
+            <p>Deal ID: ${quoteData.dealId}</p>
+          </div>
         </div>
-        
-        <h1>${quoteData.dealName}</h1>
-        
+
         <div class="info-section">
           <div class="info-block">
             <h3>Client</h3>
             <p><strong>${quoteData.company.name}</strong></p>
-            <p>${quoteData.company.address}</p>
-            <p>${quoteData.company.city}, ${quoteData.company.state} ${quoteData.company.zip}</p>
-            <p>${quoteData.company.country}</p>
+            ${quoteData.company.address ? `<p>${quoteData.company.address}</p>` : ''}
+            <p>${[quoteData.company.city, quoteData.company.state, quoteData.company.zip].filter(Boolean).join(', ')}</p>
+            ${quoteData.company.country ? `<p>${quoteData.company.country}</p>` : ''}
           </div>
           <div class="info-block">
-            <h3>Ops Solutions</h3>
+            <h3>From</h3>
             <p><strong>${opsInfo.company}</strong></p>
             <p>${opsInfo.address}</p>
             <p>${opsInfo.city}</p>
@@ -173,41 +225,62 @@ export default function QuoteGenerator() {
           </div>
         </div>
 
-        <p>Quote Created: ${quoteData.createdDate}</p>
-        <p>Expires: ${quoteData.expiryDate}</p>
+        <div class="dates">
+          <span><strong>Quote Created:</strong> ${quoteData.createdDate}</span>
+          <span><strong>Expires:</strong> ${quoteData.expiryDate}</span>
+        </div>
 
         <table>
           <thead>
             <tr>
-              <th>Products & Services</th>
-              <th style="text-align:right;">Quantity</th>
-              <th style="text-align:right;">Price</th>
-              <th style="text-align:right;">Total</th>
+              <th>Products &amp; Services</th>
+              <th class="num">Qty</th>
+              <th class="num">Price</th>
+              <th class="num">Discount</th>
+              <th class="num">Total</th>
             </tr>
           </thead>
           <tbody>
             ${quoteData.lineItems.map(item => `
               <tr>
                 <td>${item.name}</td>
-                <td style="text-align:right;">${item.quantity}</td>
-                <td style="text-align:right;">$${item.price.toFixed(2)}</td>
-                <td style="text-align:right;">$${(item.price * item.quantity).toFixed(2)}</td>
+                <td class="num">${item.quantity}</td>
+                <td class="num">$${item.price.toFixed(2)}</td>
+                <td class="num">${item.discount > 0 ? `-$${item.discount.toFixed(2)}` : '—'}</td>
+                <td class="num">$${((item.price * item.quantity) - item.discount).toFixed(2)}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
 
         <div class="total-section">
-          <p>Subtotal: $${quoteData.subtotal.toFixed(2)}</p>
-          ${quoteData.totalDiscount > 0 ? `<p>Discount: -$${quoteData.totalDiscount.toFixed(2)}</p>` : ''}
-          <p class="total-row">Total: $${quoteData.total.toFixed(2)}</p>
+          <div class="total-table">
+            <div><span>Subtotal</span><span>$${quoteData.subtotal.toFixed(2)}</span></div>
+            ${quoteData.totalDiscount > 0 ? `<div><span>Discount</span><span>-$${quoteData.totalDiscount.toFixed(2)}</span></div>` : ''}
+            <div class="grand"><span>Total</span><span>$${quoteData.total.toFixed(2)}</span></div>
+          </div>
         </div>
 
         <div class="bank-details">
           <h4>Banking Information</h4>
           <p><strong>Institution:</strong> ${opsInfo.bankDetails.institution}</p>
           <p><strong>Account Holder:</strong> ${opsInfo.bankDetails.accountHolder}</p>
+          <p><strong>Account Number:</strong> ${opsInfo.bankDetails.accountNumber}</p>
           <p><strong>IBAN:</strong> ${opsInfo.bankDetails.iban}</p>
+          <p><strong>SWIFT:</strong> ${opsInfo.bankDetails.swift}</p>
+        </div>
+
+        <div class="signature-section">
+          <div class="signature-block">
+            <div class="signature-line">Client Signature &amp; Date</div>
+          </div>
+          <div class="signature-block">
+            <div class="signature-line">Authorized Signature (Ops Solutions) &amp; Date</div>
+          </div>
+        </div>
+
+        <div class="terms">
+          Payment Terms: 50% upon acceptance, 50% upon completion. All prices are exclusive of bank transfer charges. This quote is valid for 90 days from the creation date listed above.
         </div>
       </body>
       </html>
@@ -215,13 +288,15 @@ export default function QuoteGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       <div className="max-w-4xl mx-auto">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900">Quote Generator</h1>
-          <p className="text-slate-600 mt-2">Pull deal data from HubSpot and generate professional quotes</p>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">Quote Generator</h1>
+          <p className="text-slate-600">Pull deal data from HubSpot and generate professional quotes</p>
         </div>
 
+        {/* Main Card */}
         <div className="bg-white rounded-lg shadow-lg p-8">
           {/* Deal ID Input */}
           <div className="mb-6">
@@ -315,6 +390,7 @@ export default function QuoteGenerator() {
                       <th className="text-left py-3 font-bold text-slate-900">Products & Services</th>
                       <th className="text-right py-3 font-bold text-slate-900 w-24">Quantity</th>
                       <th className="text-right py-3 font-bold text-slate-900 w-32">Price</th>
+                      <th className="text-right py-3 font-bold text-slate-900 w-32">Discount</th>
                       <th className="text-right py-3 font-bold text-slate-900 w-32">Total</th>
                     </tr>
                   </thead>
@@ -324,7 +400,8 @@ export default function QuoteGenerator() {
                         <td className="py-3 text-slate-900">{item.name}</td>
                         <td className="text-right py-3 text-slate-600">{item.quantity}</td>
                         <td className="text-right py-3 text-slate-600">${item.price.toFixed(2)}</td>
-                        <td className="text-right py-3 font-medium text-slate-900">${(item.price * item.quantity).toFixed(2)}</td>
+                        <td className="text-right py-3 text-slate-600">{item.discount > 0 ? `-$${item.discount.toFixed(2)}` : '—'}</td>
+                        <td className="text-right py-3 font-medium text-slate-900">${((item.price * item.quantity) - item.discount).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
