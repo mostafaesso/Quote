@@ -205,7 +205,7 @@ export default function QuoteGenerator() {
         <div class="info-section">
           <div class="info-block">
             <h3>Client</h3>
-            <p><strong>${quoteData.company.name}</strong></p>
+            <p><strong>${quoteData.dealName}</strong></p>
             ${quoteData.company.address ? `<p>${quoteData.company.address}</p>` : ''}
             <p>${[quoteData.company.city, quoteData.company.state, quoteData.company.zip].filter(Boolean).join(', ')}</p>
             ${quoteData.company.country ? `<p>${quoteData.company.country}</p>` : ''}
@@ -361,7 +361,7 @@ export default function QuoteGenerator() {
                   <div className="grid grid-cols-3 gap-8">
                     <div>
                       <h4 className="text-xs font-bold text-slate-600 uppercase mb-3">Client</h4>
-                      <p className="font-medium text-slate-900">{quoteData.company.name}</p>
+                      <p className="font-medium text-slate-900">{quoteData.dealName}</p>
                       <p className="text-sm text-slate-600">{quoteData.company.address}</p>
                       <p className="text-sm text-slate-600">{quoteData.company.city}</p>
                     </div>
