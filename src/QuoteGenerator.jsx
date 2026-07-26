@@ -525,6 +525,37 @@ export default function QuoteGenerator() {
                   <p className="text-sm text-slate-600"><strong>Account Holder:</strong> {opsInfo.bankDetails.accountHolder}</p>
                   <p className="text-sm text-slate-600"><strong>IBAN:</strong> {opsInfo.bankDetails.iban}</p>
                 </div>
+
+                {(quoteData.scope || quoteData.purchaseTerms) && (
+                  <div className="mt-8 pt-8 border-t-2 border-slate-300">
+                    <h3 className="text-xl font-bold text-slate-900 mb-6">Scope & Purchase Terms</h3>
+                    {quoteData.scope && (
+                      <div className="mb-6">
+                        <h4 className="text-xs font-bold text-slate-600 uppercase mb-2">Scope</h4>
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{quoteData.scope}</p>
+                      </div>
+                    )}
+                    {quoteData.purchaseTerms && (
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-600 uppercase mb-2">Purchase Terms</h4>
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{quoteData.purchaseTerms}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-10 pt-8 border-t border-slate-300 flex gap-16">
+                  <div className="flex-1">
+                    <div className="border-t border-slate-900 pt-2 text-xs text-slate-500">
+                      Client Signature & Date
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="border-t border-slate-900 pt-2 text-xs text-slate-500">
+                      Authorized Signature (Ops Solutions) & Date
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-6 flex items-center gap-2 text-green-700 bg-green-50 p-4 rounded-lg">
