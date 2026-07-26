@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     });
   }
 
-  const { type, id } = req.query;
+  const { type, id, toType } = req.query;
 
   if (!type || !id) {
     return res.status(400).json({ error: 'Missing required query params: type, id' });
@@ -24,12 +24,17 @@ export default async function handler(req, res) {
   const endpoints = {
     deal: `https://api.hubapi.com/crm/v3/objects/deals/${id}?properties=dealname,amount,dealstage,closedate&associations=companies,line_items`,
     company: `https://api.hubapi.com/crm/v3/objects/companies/${id}?properties=name,address,city,state,zip,country,phone`,
-    lineitem: `https://api.hubapi.com/crm/v3/objects/line_items/${id}?properties=name,quantity,price,discount`
+    lineitem: `https://api.hubapi.com/crm/v3/objects/line_items/${id}?properties=name,quantity,price,discount`,
+    associations: `https://api.hubapi.com/crm/v3/objects/deals/${id}/associations/${toType}`
   };
 
   const url = endpoints[type];
   if (!url) {
-    return res.status(400).json({ error: `Unknown type "${type}". Use deal, company, or lineitem.` });
+    return res.status(400).json({ error: `Unknown type "${type}". Use deal, company, lineitem, or associations.` });
+  }
+
+  if (type === 'associations' && !toType) {
+    return res.status(400).json({ error: 'Missing required query param: toType' });
   }
 
   try {
