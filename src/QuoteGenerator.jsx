@@ -202,11 +202,11 @@ export default function QuoteGenerator() {
           .signature-block { flex: 1; }
           .signature-line { border-top: 1px solid #1e293b; margin-top: 40px; padding-top: 6px; font-size: 11px; color: #64748b; }
           .terms { font-size: 10.5px; color: #64748b; margin-top: 30px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 16px; }
-          .terms-page { page-break-before: always; padding-top: 20px; }
+          .page-footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 40px; }
+          .terms-page { page-break-before: always; padding-top: 20px; display: flex; flex-direction: column; min-height: 9in; }
           .terms-page h2 { font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
-          .terms-columns { display: flex; gap: 30px; }
-          .terms-column { flex: 1; min-width: 0; }
-          .terms-column h3 { font-size: 13px; text-transform: uppercase; color: #475569; margin-bottom: 10px; }
+          .terms-section { margin-bottom: 28px; }
+          .terms-section h3 { font-size: 13px; text-transform: uppercase; color: #475569; margin-bottom: 10px; }
           .terms-body { font-size: 11.5px; line-height: 1.6; white-space: pre-wrap; color: #334155; }
           @media print {
             body { padding: 0; }
@@ -297,6 +297,43 @@ export default function QuoteGenerator() {
           <p><strong>SWIFT:</strong> ${opsInfo.bankDetails.swift}</p>
         </div>
 
+        <div class="terms">
+          Payment Terms: 50% upon acceptance, 50% upon completion. All prices are exclusive of bank transfer charges. This quote is valid until the expiration date listed above.
+        </div>
+
+        <div class="page-footer">Page 1${(quoteData.scope || quoteData.purchaseTerms) ? ' of 2' : ''}</div>
+
+        ${(quoteData.scope || quoteData.purchaseTerms) ? `
+        <div class="terms-page">
+          <div>
+            <h2>Scope &amp; Purchase Terms</h2>
+            ${quoteData.scope ? `
+              <div class="terms-section">
+                <h3>Scope</h3>
+                <div class="terms-body">${escapeHtml(quoteData.scope)}</div>
+              </div>
+            ` : ''}
+            ${quoteData.purchaseTerms ? `
+              <div class="terms-section">
+                <h3>Purchase Terms</h3>
+                <div class="terms-body">${escapeHtml(quoteData.purchaseTerms)}</div>
+              </div>
+            ` : ''}
+          </div>
+
+          <div style="margin-top: auto;">
+            <div class="signature-section">
+              <div class="signature-block">
+                <div class="signature-line">Client Signature &amp; Date</div>
+              </div>
+              <div class="signature-block">
+                <div class="signature-line">Authorized Signature (Ops Solutions) &amp; Date</div>
+              </div>
+            </div>
+            <div class="page-footer">Page 2 of 2</div>
+          </div>
+        </div>
+        ` : `
         <div class="signature-section">
           <div class="signature-block">
             <div class="signature-line">Client Signature &amp; Date</div>
@@ -305,30 +342,7 @@ export default function QuoteGenerator() {
             <div class="signature-line">Authorized Signature (Ops Solutions) &amp; Date</div>
           </div>
         </div>
-
-        <div class="terms">
-          Payment Terms: 50% upon acceptance, 50% upon completion. All prices are exclusive of bank transfer charges. This quote is valid until the expiration date listed above.
-        </div>
-
-        ${(quoteData.scope || quoteData.purchaseTerms) ? `
-        <div class="terms-page">
-          <h2>Scope &amp; Purchase Terms</h2>
-          <div class="terms-columns">
-            ${quoteData.scope ? `
-              <div class="terms-column">
-                <h3>Scope</h3>
-                <div class="terms-body">${escapeHtml(quoteData.scope)}</div>
-              </div>
-            ` : ''}
-            ${quoteData.purchaseTerms ? `
-              <div class="terms-column">
-                <h3>Purchase Terms</h3>
-                <div class="terms-body">${escapeHtml(quoteData.purchaseTerms)}</div>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-        ` : ''}
+        `}
       </body>
       </html>
     `;
