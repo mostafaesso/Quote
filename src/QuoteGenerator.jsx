@@ -8,7 +8,7 @@ export default function QuoteGenerator() {
   const [quoteData, setQuoteData] = useState(null);
   const [expiryDate, setExpiryDate] = useState(() => {
     const d = new Date();
-    d.setDate(d.getDate() + 90);
+    d.setDate(d.getDate() + 7);
     return d.toISOString().split('T')[0]; // YYYY-MM-DD for the date input
   });
 
@@ -58,19 +58,20 @@ export default function QuoteGenerator() {
     return items;
   };
 
-  const formatNumberedTextHtml = (str) => {
+  const formatNumberedTextHtml = (str, bold = true) => {
     return groupNumberedItems(str).map(item => {
       const bodyText = item.body.join(' ');
-      const headerHtml = item.header ? `<strong>${escapeHtml(item.header)}</strong>` : '';
+      const headerEscaped = item.header ? escapeHtml(item.header) : '';
+      const headerHtml = item.header ? (bold ? `<strong>${headerEscaped}</strong>` : headerEscaped) : '';
       const bodyHtml = bodyText ? `${item.header ? ' ' : ''}${escapeHtml(bodyText)}` : '';
       return `<div style="margin-bottom: 8px;">${headerHtml}${bodyHtml}</div>`;
     }).join('');
   };
 
-  const renderNumberedText = (str) => {
+  const renderNumberedText = (str, bold = true) => {
     return groupNumberedItems(str).map((item, idx) => (
       <div key={idx} className="mb-2">
-        {item.header && <strong className="font-semibold text-slate-900">{item.header}</strong>}
+        {item.header && (bold ? <strong className="font-semibold text-slate-900">{item.header}</strong> : item.header)}
         {item.body.length > 0 && (item.header ? ' ' : '') + item.body.join(' ')}
       </div>
     ));
@@ -240,10 +241,10 @@ export default function QuoteGenerator() {
           .signature-section { display: flex; gap: 60px; margin-top: 40px; page-break-inside: avoid; }
           .signature-block { flex: 1; }
           .signature-line { border-top: 1px solid #1e293b; margin-top: 30px; padding-top: 6px; font-size: 11px; color: #64748b; }
-          .signature-images { display: flex; align-items: center; height: 100px; margin-top: 10px; }
-          .signature-images img { height: 95px; width: auto; }
-          .signature-images img:first-child { position: relative; z-index: 1; }
-          .signature-images img:last-child { margin-left: -30px; position: relative; z-index: 2; }
+          .signature-images { display: flex; align-items: center; height: 110px; margin-top: 10px; }
+          .signature-images img:first-child { height: 110px; width: auto; position: relative; z-index: 1; }
+          .signature-images img:last-child { height: 95px; width: auto; margin-left: -12px; position: relative; z-index: 2; }
+          .signature-spacer { height: 110px; margin-top: 10px; }
           .terms { font-size: 10.5px; color: #64748b; margin-top: 30px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 16px; }
           .page-footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 30px; }
           .terms-page { page-break-before: always; padding-top: 20px; }
@@ -353,7 +354,7 @@ export default function QuoteGenerator() {
             ${quoteData.scope ? `
               <div class="terms-section">
                 <h3>Scope</h3>
-                <div class="terms-body">${formatNumberedTextHtml(quoteData.scope)}</div>
+                <div class="terms-body">${formatNumberedTextHtml(quoteData.scope, false)}</div>
               </div>
             ` : ''}
             ${quoteData.purchaseTerms ? `
@@ -366,6 +367,7 @@ export default function QuoteGenerator() {
 
           <div class="signature-section">
             <div class="signature-block">
+              <div class="signature-spacer"></div>
               <div class="signature-line">Client Signature &amp; Date</div>
             </div>
             <div class="signature-block">
@@ -381,6 +383,7 @@ export default function QuoteGenerator() {
         ` : `
         <div class="signature-section">
           <div class="signature-block">
+            <div class="signature-spacer"></div>
             <div class="signature-line">Client Signature &amp; Date</div>
           </div>
           <div class="signature-block">
@@ -581,7 +584,7 @@ export default function QuoteGenerator() {
                     {quoteData.scope && (
                       <div className="mb-6">
                         <h4 className="text-xs font-bold text-slate-600 uppercase mb-2">Scope</h4>
-                        <p className="text-sm text-slate-700 leading-relaxed">{renderNumberedText(quoteData.scope)}</p>
+                        <p className="text-sm text-slate-700 leading-relaxed">{renderNumberedText(quoteData.scope, false)}</p>
                       </div>
                     )}
                     {quoteData.purchaseTerms && (
@@ -595,21 +598,22 @@ export default function QuoteGenerator() {
 
                 <div className="mt-10 pt-8 border-t border-slate-300 flex gap-16">
                   <div className="flex-1">
+                    <div className="h-[110px] mt-[10px]"></div>
                     <div className="border-t border-slate-900 pt-2 text-xs text-slate-500">
                       Client Signature & Date
                     </div>
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center h-[100px] mb-1">
+                    <div className="flex items-center h-[110px] mt-[10px] mb-1">
                       <img
                         src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Blue%20Signature.png"
                         alt="Signature"
-                        className="h-24 w-auto relative z-10"
+                        className="h-[110px] w-auto relative z-10"
                       />
                       <img
                         src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/OPS%20Stamp.png"
                         alt="Ops Solutions Stamp"
-                        className="h-24 w-auto relative z-20 -ml-8"
+                        className="h-24 w-auto relative z-20 -ml-3"
                       />
                     </div>
                     <div className="border-t border-slate-900 pt-2 text-xs text-slate-500">
