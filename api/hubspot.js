@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   const endpoints = {
-    deal: `https://api.hubapi.com/crm/v3/objects/deals/${id}?properties=dealname,amount,dealstage,closedate&associations=companies,line_items`,
+    deal: `https://api.hubapi.com/crm/v3/objects/deals/${id}?properties=dealname,amount,dealstage,closedate,scope,purchase_terms&associations=companies,line_items`,
     company: `https://api.hubapi.com/crm/v3/objects/companies/${id}?properties=name,address,city,state,zip,country,phone`,
     lineitem: `https://api.hubapi.com/crm/v3/objects/line_items/${id}?properties=name,quantity,price,discount`,
     associations: `https://api.hubapi.com/crm/v3/objects/deals/${id}/associations/${toType}`
