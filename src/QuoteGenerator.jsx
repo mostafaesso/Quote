@@ -6,6 +6,11 @@ export default function QuoteGenerator() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [quoteData, setQuoteData] = useState(null);
+  const [expiryDate, setExpiryDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    return d.toISOString().split('T')[0]; // YYYY-MM-DD for the date input
+  });
 
   // Ops Solutions company info (your static data)
   const opsInfo = {
@@ -13,7 +18,9 @@ export default function QuoteGenerator() {
     address: '307 Vine St, Euless, TX',
     city: 'Euless, TX 76040-3800',
     country: 'United States',
-    preparedBy: 'Revenue Operations Manager',
+    preparedBy: 'Mostafa Ali',
+    preparedByTitle: 'Sr. GTM Systems & RevOps',
+    preparedByLink: 'https://www.linkedin.com/in/mostafa-ahmed-ali/',
     email: 'mostafa@opsolutionss.com',
     phone: '+18628884214',
     bankDetails: {
@@ -23,6 +30,17 @@ export default function QuoteGenerator() {
       iban: 'EG750025007100000071254114017',
       swift: 'EBBBKEGCX'
     }
+  };
+
+  const escapeHtml = (str) => {
+    const div = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(str).replace(/[&<>"']/g, (c) => div[c]);
+  };
+
+  const formatExpiryDate = () => {
+    if (!expiryDate) return '';
+    const [year, month, day] = expiryDate.split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const fetchHubSpotData = async () => {
@@ -105,6 +123,8 @@ export default function QuoteGenerator() {
       setQuoteData({
         dealId,
         dealName: dealProperties.dealname || 'Deal',
+        scope: dealProperties.scope || '',
+        purchaseTerms: dealProperties.purchase_terms || '',
         company: {
           name: companyData?.name || 'Client Company',
           address: companyData?.address || '',
@@ -116,9 +136,9 @@ export default function QuoteGenerator() {
         lineItems,
         subtotal,
         totalDiscount,
+        hasDiscount: totalDiscount > 0,
         total,
-        createdDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-        expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        createdDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
       });
     } catch (err) {
       setError(err.message || 'Failed to fetch data from HubSpot');
@@ -182,6 +202,12 @@ export default function QuoteGenerator() {
           .signature-block { flex: 1; }
           .signature-line { border-top: 1px solid #1e293b; margin-top: 40px; padding-top: 6px; font-size: 11px; color: #64748b; }
           .terms { font-size: 10.5px; color: #64748b; margin-top: 30px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 16px; }
+          .terms-page { page-break-before: always; padding-top: 20px; }
+          .terms-page h2 { font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
+          .terms-columns { display: flex; gap: 30px; }
+          .terms-column { flex: 1; min-width: 0; }
+          .terms-column h3 { font-size: 13px; text-transform: uppercase; color: #475569; margin-bottom: 10px; }
+          .terms-body { font-size: 11.5px; line-height: 1.6; white-space: pre-wrap; color: #334155; }
           @media print {
             body { padding: 0; }
           }
@@ -220,6 +246,7 @@ export default function QuoteGenerator() {
           <div class="info-block">
             <h3>Prepared By</h3>
             <p><strong>${opsInfo.preparedBy}</strong></p>
+            <p><a href="${opsInfo.preparedByLink}" style="color:#2563eb; text-decoration:none;">${opsInfo.preparedByTitle}</a></p>
             <p>${opsInfo.email}</p>
             <p>${opsInfo.phone}</p>
           </div>
@@ -227,7 +254,7 @@ export default function QuoteGenerator() {
 
         <div class="dates">
           <span><strong>Quote Created:</strong> ${quoteData.createdDate}</span>
-          <span><strong>Expires:</strong> ${quoteData.expiryDate}</span>
+          <span><strong>Expires:</strong> ${formatExpiryDate()}</span>
         </div>
 
         <table>
@@ -236,7 +263,7 @@ export default function QuoteGenerator() {
               <th>Products &amp; Services</th>
               <th class="num">Qty</th>
               <th class="num">Price</th>
-              <th class="num">Discount</th>
+              ${quoteData.hasDiscount ? '<th class="num">Discount</th>' : ''}
               <th class="num">Total</th>
             </tr>
           </thead>
@@ -246,7 +273,7 @@ export default function QuoteGenerator() {
                 <td>${item.name}</td>
                 <td class="num">${item.quantity}</td>
                 <td class="num">$${item.price.toFixed(2)}</td>
-                <td class="num">${item.discount > 0 ? `-$${item.discount.toFixed(2)}` : '—'}</td>
+                ${quoteData.hasDiscount ? `<td class="num">${item.discount > 0 ? `-$${item.discount.toFixed(2)}` : '—'}</td>` : ''}
                 <td class="num">$${((item.price * item.quantity) - item.discount).toFixed(2)}</td>
               </tr>
             `).join('')}
@@ -256,7 +283,7 @@ export default function QuoteGenerator() {
         <div class="total-section">
           <div class="total-table">
             <div><span>Subtotal</span><span>$${quoteData.subtotal.toFixed(2)}</span></div>
-            ${quoteData.totalDiscount > 0 ? `<div><span>Discount</span><span>-$${quoteData.totalDiscount.toFixed(2)}</span></div>` : ''}
+            ${quoteData.hasDiscount ? `<div><span>Discount</span><span>-$${quoteData.totalDiscount.toFixed(2)}</span></div>` : ''}
             <div class="grand"><span>Total</span><span>$${quoteData.total.toFixed(2)}</span></div>
           </div>
         </div>
@@ -280,8 +307,28 @@ export default function QuoteGenerator() {
         </div>
 
         <div class="terms">
-          Payment Terms: 50% upon acceptance, 50% upon completion. All prices are exclusive of bank transfer charges. This quote is valid for 90 days from the creation date listed above.
+          Payment Terms: 50% upon acceptance, 50% upon completion. All prices are exclusive of bank transfer charges. This quote is valid until the expiration date listed above.
         </div>
+
+        ${(quoteData.scope || quoteData.purchaseTerms) ? `
+        <div class="terms-page">
+          <h2>Scope &amp; Purchase Terms</h2>
+          <div class="terms-columns">
+            ${quoteData.scope ? `
+              <div class="terms-column">
+                <h3>Scope</h3>
+                <div class="terms-body">${escapeHtml(quoteData.scope)}</div>
+              </div>
+            ` : ''}
+            ${quoteData.purchaseTerms ? `
+              <div class="terms-column">
+                <h3>Purchase Terms</h3>
+                <div class="terms-body">${escapeHtml(quoteData.purchaseTerms)}</div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+        ` : ''}
       </body>
       </html>
     `;
@@ -336,6 +383,19 @@ export default function QuoteGenerator() {
             </div>
           </div>
 
+          {/* Quote Expiry Date */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Quote Expires On
+            </label>
+            <input
+              type="date"
+              value={expiryDate}
+              onChange={(e) => setExpiryDate(e.target.value)}
+              className="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -380,6 +440,14 @@ export default function QuoteGenerator() {
                     <div>
                       <h4 className="text-xs font-bold text-slate-600 uppercase mb-3">Prepared By</h4>
                       <p className="font-medium text-slate-900">{opsInfo.preparedBy}</p>
+                      <a
+                        href={opsInfo.preparedByLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-blue-600 hover:underline block"
+                      >
+                        {opsInfo.preparedByTitle}
+                      </a>
                       <p className="text-sm text-slate-600">{opsInfo.email}</p>
                       <p className="text-sm text-slate-600">{opsInfo.phone}</p>
                     </div>
@@ -388,7 +456,7 @@ export default function QuoteGenerator() {
 
                 <div className="mb-6 pb-6 border-b border-slate-300">
                   <p className="text-sm text-slate-600">Quote Created: {quoteData.createdDate}</p>
-                  <p className="text-sm text-slate-600">Expires: {quoteData.expiryDate}</p>
+                  <p className="text-sm text-slate-600">Expires: {formatExpiryDate()}</p>
                 </div>
 
                 <table className="w-full mb-6">
@@ -397,7 +465,9 @@ export default function QuoteGenerator() {
                       <th className="text-left py-3 font-bold text-slate-900">Products & Services</th>
                       <th className="text-right py-3 font-bold text-slate-900 w-24">Quantity</th>
                       <th className="text-right py-3 font-bold text-slate-900 w-32">Price</th>
-                      <th className="text-right py-3 font-bold text-slate-900 w-32">Discount</th>
+                      {quoteData.hasDiscount && (
+                        <th className="text-right py-3 font-bold text-slate-900 w-32">Discount</th>
+                      )}
                       <th className="text-right py-3 font-bold text-slate-900 w-32">Total</th>
                     </tr>
                   </thead>
@@ -407,7 +477,9 @@ export default function QuoteGenerator() {
                         <td className="py-3 text-slate-900">{item.name}</td>
                         <td className="text-right py-3 text-slate-600">{item.quantity}</td>
                         <td className="text-right py-3 text-slate-600">${item.price.toFixed(2)}</td>
-                        <td className="text-right py-3 text-slate-600">{item.discount > 0 ? `-$${item.discount.toFixed(2)}` : '—'}</td>
+                        {quoteData.hasDiscount && (
+                          <td className="text-right py-3 text-slate-600">{item.discount > 0 ? `-$${item.discount.toFixed(2)}` : '—'}</td>
+                        )}
                         <td className="text-right py-3 font-medium text-slate-900">${((item.price * item.quantity) - item.discount).toFixed(2)}</td>
                       </tr>
                     ))}
@@ -420,7 +492,7 @@ export default function QuoteGenerator() {
                       <span>Subtotal</span>
                       <span>${quoteData.subtotal.toFixed(2)}</span>
                     </div>
-                    {quoteData.totalDiscount > 0 && (
+                    {quoteData.hasDiscount && (
                       <div className="flex justify-between py-2 text-slate-600">
                         <span>Discount</span>
                         <span>-${quoteData.totalDiscount.toFixed(2)}</span>
