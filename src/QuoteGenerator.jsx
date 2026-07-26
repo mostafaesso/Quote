@@ -226,8 +226,10 @@ export default function QuoteGenerator() {
           .signature-section { display: flex; gap: 60px; margin-top: 40px; page-break-inside: avoid; }
           .signature-block { flex: 1; }
           .signature-line { border-top: 1px solid #1e293b; margin-top: 30px; padding-top: 6px; font-size: 11px; color: #64748b; }
-          .signature-images { display: flex; align-items: center; gap: 14px; height: 60px; margin-top: 10px; }
-          .signature-images img { height: 55px; width: auto; }
+          .signature-images { display: flex; align-items: center; height: 70px; margin-top: 10px; }
+          .signature-images img { height: 65px; width: auto; }
+          .signature-images img:first-child { position: relative; z-index: 1; }
+          .signature-images img:last-child { margin-left: -22px; position: relative; z-index: 2; }
           .terms { font-size: 10.5px; color: #64748b; margin-top: 30px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 16px; }
           .page-footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 30px; }
           .terms-page { page-break-before: always; padding-top: 20px; }
@@ -354,7 +356,7 @@ export default function QuoteGenerator() {
             </div>
             <div class="signature-block">
               <div class="signature-images">
-                <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Signature.png" alt="Signature" />
+                <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Blue%20Signature.png" alt="Signature" />
                 <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/OPS%20Stamp.png" alt="Ops Solutions Stamp" />
               </div>
               <div class="signature-line">Authorized Signature (Ops Solutions) &amp; Date</div>
@@ -369,7 +371,7 @@ export default function QuoteGenerator() {
           </div>
           <div class="signature-block">
             <div class="signature-images">
-              <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Signature.png" alt="Signature" />
+              <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Blue%20Signature.png" alt="Signature" />
               <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/OPS%20Stamp.png" alt="Ops Solutions Stamp" />
             </div>
             <div class="signature-line">Authorized Signature (Ops Solutions) &amp; Date</div>
@@ -584,16 +586,16 @@ export default function QuoteGenerator() {
                     </div>
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 h-16 mb-1">
+                    <div className="flex items-center h-[70px] mb-1">
                       <img
-                        src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Signature.png"
+                        src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Blue%20Signature.png"
                         alt="Signature"
-                        className="h-14 w-auto"
+                        className="h-16 w-auto relative z-10"
                       />
                       <img
                         src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/OPS%20Stamp.png"
                         alt="Ops Solutions Stamp"
-                        className="h-14 w-auto"
+                        className="h-16 w-auto relative z-20 -ml-6"
                       />
                     </div>
                     <div className="border-t border-slate-900 pt-2 text-xs text-slate-500">
