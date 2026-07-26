@@ -251,6 +251,8 @@ export default function QuoteGenerator() {
           .terms-page h2 { font-size: 18px; margin-bottom: 16px; border-bottom: 2px solid #1e293b; padding-bottom: 8px; }
           .terms-section { margin-bottom: 20px; }
           .terms-section h3 { font-size: 12px; text-transform: uppercase; color: #475569; margin-bottom: 6px; }
+          .closing-note { font-size: 11px; line-height: 1.6; color: #334155; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-style: italic; }
+          .signature-heading { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; margin-top: 30px; margin-bottom: 0; }
           .terms-body { font-size: 10px; line-height: 1.45; color: #334155; }
           @media print {
             body { padding: 0; }
@@ -365,6 +367,11 @@ export default function QuoteGenerator() {
             ` : ''}
           </div>
 
+          <div class="closing-note">
+            Ops Solutions is excited to partner with you on this project. We look forward to building a strong working relationship and supporting your team's long term success.
+          </div>
+
+          <div class="signature-heading">Signatures</div>
           <div class="signature-section">
             <div class="signature-block">
               <div class="signature-spacer"></div>
@@ -381,6 +388,11 @@ export default function QuoteGenerator() {
           <div class="page-footer">Page 2 of 2</div>
         </div>
         ` : `
+        <div class="closing-note">
+          Ops Solutions is excited to partner with you on this project. We look forward to building a strong working relationship and supporting your team's long term success.
+        </div>
+
+        <div class="signature-heading">Signatures</div>
         <div class="signature-section">
           <div class="signature-block">
             <div class="signature-spacer"></div>
@@ -596,7 +608,12 @@ export default function QuoteGenerator() {
                   </div>
                 )}
 
-                <div className="mt-10 pt-8 border-t border-slate-300 flex gap-16">
+                <div className="mt-6 pt-4 border-t border-slate-200 text-sm text-slate-600 italic leading-relaxed">
+                  Ops Solutions is excited to partner with you on this project. We look forward to building a strong working relationship and supporting your team's long term success.
+                </div>
+
+                <h4 className="text-xs font-bold text-slate-600 uppercase mt-8 mb-0">Signatures</h4>
+                <div className="mt-2 pt-6 border-t border-slate-300 flex gap-16">
                   <div className="flex-1">
                     <div className="h-[110px] mt-[10px]"></div>
                     <div className="border-t border-slate-900 pt-2 text-xs text-slate-500">
