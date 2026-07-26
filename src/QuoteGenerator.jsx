@@ -37,6 +37,31 @@ export default function QuoteGenerator() {
     return String(str).replace(/[&<>"']/g, (c) => div[c]);
   };
 
+  // Bolds lines that start with a number marker like "1-" or "2." (used for
+  // Scope/Purchase Terms text pulled from HubSpot deal properties)
+  const formatNumberedTextHtml = (str) => {
+    return String(str)
+      .split('\n')
+      .map(line => {
+        const escaped = escapeHtml(line);
+        return /^\s*\d+\s*[.\-]\s*/.test(line) ? `<strong>${escaped}</strong>` : escaped;
+      })
+      .join('\n');
+  };
+
+  const renderNumberedText = (str) => {
+    const lines = String(str).split('\n');
+    return lines.map((line, idx) => {
+      const isNumbered = /^\s*\d+\s*[.\-]\s*/.test(line);
+      return (
+        <React.Fragment key={idx}>
+          {isNumbered ? <strong className="font-semibold text-slate-900">{line}</strong> : line}
+          {idx < lines.length - 1 && <br />}
+        </React.Fragment>
+      );
+    });
+  };
+
   const formatExpiryDate = () => {
     if (!expiryDate) return '';
     const [year, month, day] = expiryDate.split('-').map(Number);
@@ -198,16 +223,18 @@ export default function QuoteGenerator() {
           .total-table .grand { font-size: 17px; font-weight: bold; border-top: 2px solid #1e293b; padding-top: 10px; margin-top: 4px; }
           .bank-details { background-color: #f1f5f9; padding: 14px 16px; margin-top: 16px; font-size: 12px; border-radius: 6px; }
           .bank-details h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; color: #475569; }
-          .signature-section { display: flex; gap: 60px; margin-top: 60px; page-break-inside: avoid; }
+          .signature-section { display: flex; gap: 60px; margin-top: 40px; page-break-inside: avoid; }
           .signature-block { flex: 1; }
-          .signature-line { border-top: 1px solid #1e293b; margin-top: 40px; padding-top: 6px; font-size: 11px; color: #64748b; }
+          .signature-line { border-top: 1px solid #1e293b; margin-top: 30px; padding-top: 6px; font-size: 11px; color: #64748b; }
+          .signature-images { display: flex; align-items: center; gap: 14px; height: 60px; margin-top: 10px; }
+          .signature-images img { height: 55px; width: auto; }
           .terms { font-size: 10.5px; color: #64748b; margin-top: 30px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 16px; }
-          .page-footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 40px; }
-          .terms-page { page-break-before: always; padding-top: 20px; display: flex; flex-direction: column; min-height: 9in; }
-          .terms-page h2 { font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
-          .terms-section { margin-bottom: 28px; }
-          .terms-section h3 { font-size: 13px; text-transform: uppercase; color: #475569; margin-bottom: 10px; }
-          .terms-body { font-size: 11.5px; line-height: 1.6; white-space: pre-wrap; color: #334155; }
+          .page-footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 30px; }
+          .terms-page { page-break-before: always; padding-top: 20px; }
+          .terms-page h2 { font-size: 18px; margin-bottom: 16px; border-bottom: 2px solid #1e293b; padding-bottom: 8px; }
+          .terms-section { margin-bottom: 20px; }
+          .terms-section h3 { font-size: 12px; text-transform: uppercase; color: #475569; margin-bottom: 6px; }
+          .terms-body { font-size: 10px; line-height: 1.45; white-space: pre-wrap; color: #334155; }
           @media print {
             body { padding: 0; }
           }
@@ -310,28 +337,30 @@ export default function QuoteGenerator() {
             ${quoteData.scope ? `
               <div class="terms-section">
                 <h3>Scope</h3>
-                <div class="terms-body">${escapeHtml(quoteData.scope)}</div>
+                <div class="terms-body">${formatNumberedTextHtml(quoteData.scope)}</div>
               </div>
             ` : ''}
             ${quoteData.purchaseTerms ? `
               <div class="terms-section">
                 <h3>Purchase Terms</h3>
-                <div class="terms-body">${escapeHtml(quoteData.purchaseTerms)}</div>
+                <div class="terms-body">${formatNumberedTextHtml(quoteData.purchaseTerms)}</div>
               </div>
             ` : ''}
           </div>
 
-          <div style="margin-top: auto;">
-            <div class="signature-section">
-              <div class="signature-block">
-                <div class="signature-line">Client Signature &amp; Date</div>
-              </div>
-              <div class="signature-block">
-                <div class="signature-line">Authorized Signature (Ops Solutions) &amp; Date</div>
-              </div>
+          <div class="signature-section">
+            <div class="signature-block">
+              <div class="signature-line">Client Signature &amp; Date</div>
             </div>
-            <div class="page-footer">Page 2 of 2</div>
+            <div class="signature-block">
+              <div class="signature-images">
+                <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Signature.png" alt="Signature" />
+                <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/OPS%20Stamp.png" alt="Ops Solutions Stamp" />
+              </div>
+              <div class="signature-line">Authorized Signature (Ops Solutions) &amp; Date</div>
+            </div>
           </div>
+          <div class="page-footer">Page 2 of 2</div>
         </div>
         ` : `
         <div class="signature-section">
@@ -339,6 +368,10 @@ export default function QuoteGenerator() {
             <div class="signature-line">Client Signature &amp; Date</div>
           </div>
           <div class="signature-block">
+            <div class="signature-images">
+              <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Signature.png" alt="Signature" />
+              <img src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/OPS%20Stamp.png" alt="Ops Solutions Stamp" />
+            </div>
             <div class="signature-line">Authorized Signature (Ops Solutions) &amp; Date</div>
           </div>
         </div>
@@ -532,13 +565,13 @@ export default function QuoteGenerator() {
                     {quoteData.scope && (
                       <div className="mb-6">
                         <h4 className="text-xs font-bold text-slate-600 uppercase mb-2">Scope</h4>
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{quoteData.scope}</p>
+                        <p className="text-sm text-slate-700 leading-relaxed">{renderNumberedText(quoteData.scope)}</p>
                       </div>
                     )}
                     {quoteData.purchaseTerms && (
                       <div>
                         <h4 className="text-xs font-bold text-slate-600 uppercase mb-2">Purchase Terms</h4>
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{quoteData.purchaseTerms}</p>
+                        <p className="text-sm text-slate-700 leading-relaxed">{renderNumberedText(quoteData.purchaseTerms)}</p>
                       </div>
                     )}
                   </div>
@@ -551,6 +584,18 @@ export default function QuoteGenerator() {
                     </div>
                   </div>
                   <div className="flex-1">
+                    <div className="flex items-center gap-3 h-16 mb-1">
+                      <img
+                        src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Signature.png"
+                        alt="Signature"
+                        className="h-14 w-auto"
+                      />
+                      <img
+                        src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/OPS%20Stamp.png"
+                        alt="Ops Solutions Stamp"
+                        className="h-14 w-auto"
+                      />
+                    </div>
                     <div className="border-t border-slate-900 pt-2 text-xs text-slate-500">
                       Authorized Signature (Ops Solutions) & Date
                     </div>
