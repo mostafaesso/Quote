@@ -157,7 +157,7 @@ export default function QuoteGenerator() {
           body { font-family: Arial, Helvetica, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; color: #1e293b; }
           .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 3px solid #1e293b; }
           .logo-mark { display: flex; align-items: center; gap: 12px; }
-          .logo-box { width: 52px; height: 52px; background: #2563eb; color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; letter-spacing: 1px; }
+          .logo-img { height: 48px; width: auto; }
           .logo-text { font-size: 22px; font-weight: bold; color: #1e293b; }
           .logo-sub { font-size: 11px; color: #64748b; }
           .quote-title { text-align: right; }
@@ -190,7 +190,7 @@ export default function QuoteGenerator() {
       <body>
         <div class="header">
           <div class="logo-mark">
-            <div class="logo-box">OPS</div>
+            <img class="logo-img" src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Group.png" alt="Ops Solutions logo" />
             <div>
               <div class="logo-text">Ops Solutions</div>
               <div class="logo-sub">Revenue Operations & GTM Consulting</div>
@@ -291,9 +291,16 @@ export default function QuoteGenerator() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Quote Generator</h1>
-          <p className="text-slate-600">Pull deal data from HubSpot and generate professional quotes</p>
+        <div className="mb-8 flex items-center gap-4">
+          <img
+            src="https://47432935.fs1.hubspotusercontent-na1.net/hubfs/47432935/Logos/Group.png"
+            alt="Ops Solutions logo"
+            className="h-12 w-auto"
+          />
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 mb-1">Quote Generator</h1>
+            <p className="text-slate-600">Pull deal data from HubSpot and generate professional quotes</p>
+          </div>
         </div>
 
         {/* Main Card */}
