@@ -238,21 +238,21 @@ export default function QuoteGenerator() {
           .total-table .grand { font-size: 17px; font-weight: bold; border-top: 2px solid #1e293b; padding-top: 10px; margin-top: 4px; }
           .bank-details { background-color: #f1f5f9; padding: 14px 16px; margin-top: 16px; font-size: 12px; border-radius: 6px; }
           .bank-details h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; color: #475569; }
-          .signature-section { display: flex; gap: 60px; margin-top: 40px; page-break-inside: avoid; }
+          .signature-section { display: flex; gap: 60px; margin-top: 16px; page-break-inside: avoid; }
           .signature-block { flex: 1; }
           .signature-line { border-top: 1px solid #1e293b; margin-top: 30px; padding-top: 6px; font-size: 11px; color: #64748b; }
-          .signature-images { display: flex; align-items: center; height: 110px; margin-top: 10px; }
-          .signature-images img:first-child { height: 110px; width: auto; position: relative; z-index: 1; }
-          .signature-images img:last-child { height: 95px; width: auto; margin-left: -12px; position: relative; z-index: 2; }
-          .signature-spacer { height: 110px; margin-top: 10px; }
+          .signature-images { display: flex; align-items: center; height: 85px; margin-top: 8px; }
+          .signature-images img:first-child { height: 85px; width: auto; position: relative; z-index: 1; }
+          .signature-images img:last-child { height: 72px; width: auto; margin-left: -10px; position: relative; z-index: 2; }
+          .signature-spacer { height: 85px; margin-top: 8px; }
           .terms { font-size: 10.5px; color: #64748b; margin-top: 30px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 16px; }
           .page-footer { text-align: center; font-size: 10px; color: #94a3b8; margin-top: 30px; }
           .terms-page { page-break-before: always; padding-top: 20px; }
           .terms-page h2 { font-size: 18px; margin-bottom: 16px; border-bottom: 2px solid #1e293b; padding-bottom: 8px; }
           .terms-section { margin-bottom: 20px; }
           .terms-section h3 { font-size: 12px; text-transform: uppercase; color: #475569; margin-bottom: 6px; }
-          .closing-note { font-size: 11px; line-height: 1.6; color: #334155; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-style: italic; }
-          .signature-heading { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; margin-top: 30px; margin-bottom: 0; }
+          .closing-note { font-size: 10.5px; line-height: 1.5; color: #334155; margin-top: 12px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-style: italic; }
+          .signature-heading { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; margin-top: 16px; margin-bottom: 0; }
           .terms-body { font-size: 10px; line-height: 1.45; color: #334155; }
           @media print {
             body { padding: 0; }
